@@ -1,89 +1,88 @@
 # Deriv API Client
 
-A standalone, basic Deriv API client for connection, authorized operations, and subscriptions.
+A standalone, high-performance Deriv API client for authorized operations, subscriptions, and technical analysis.
 
 ## Features
 
-- **Keep-Alive**: Built-in heartbeat (ping) every 30 seconds.
-- **Easy Instance**: Just provide `appId` and `token`.
-- **Core Operations**: Buy, Sell, Balance, Active Symbols.
-- **Historical Data**: Fetch Ticks and Candles history.
-- **Advanced Proposals**: Single and stream proposals (includes `ticks_stayed_in` for accumulators).
-- **Subscriptions**: Real-time Ticks, Proposals, and Open Contracts.
+- **Keep-Alive**: Built-in heartbeat (ping) every 30 seconds for stable connections.
+- **Modern Imports**: Support for sub-path exports for technical indicators.
+- **Core Operations**: Comprehensive support for Buy, Sell, Balance, and Active Symbols.
+- **Historical Data**: Seamless fetching of Ticks and Candles history.
+- **Technical Indicators**: Built-in mathematical indicators (BB, MACD, SMA, EMA).
+- **Advanced Proposals**: Support for single and stream proposals (including Accumulators).
+- **Real-time Subscriptions**: Ticks, Proposals, and Open Contracts.
 
 ## Installation
 
 ```bash
-# Inside the root of your project
-cd deriv
+# Install dependencies
 npm install
+
+# Build the project
 npm run build
 ```
 
 ## Usage
 
+### Core Client
+
 ```typescript
-import { DerivServiceClient } from './deriv/src';
+import { DerivServiceClient } from 'derivclient-ts';
 
 const deriv = new DerivServiceClient({
   appId: YOUR_APP_ID,
-  token: 'YOUR_TOKEN'
+  token: 'YOUR_TOKEN',
 });
 
 async function start() {
   await deriv.initialize();
-  
+
   // Get history
   const history = await deriv.getTicksHistory('R_100', { count: 10 });
   console.log('Last ticks:', history.history?.prices);
-
-  // Single Proposal (Useful for checking accumulators_stats / ticks_stayed_in)
-  const proposal = await deriv.getProposal({
-    symbol: 'R_100',
-    contract_type: 'ACCU',
-    amount: 10,
-    basis: 'stake',
-    growth_rate: 0.03
-  });
-  console.log('Stayed in:', proposal.proposal?.contract_details?.ticks_stayed_in);
 
   // Subscribe to ticks
   await deriv.subscribeTicks('R_100', (tick) => {
     console.log(`New Tick: ${tick.quote}`);
   });
 }
+```
 
-start();
+### Technical Indicators
+
+The library provides a specialized sub-path for indicators to keep your bundle light.
+
+```typescript
+import { BollingerBands, MACD } from 'derivclient-ts/indicators';
+
+const prices = [100, 101, 102, 101, 103, 105, 104, 106]; // ...
+
+// Bollinger Bands (period, stdDev)
+const { upper, middle, lower } = BollingerBands(prices, 20, 2);
+
+// MACD (fast, slow, signal)
+const { macd, signal, histogram } = MACD(prices, 12, 26, 9);
 ```
 
 ## API Reference
 
-### `initialize()`
-Authenticates the connection with the provided token.
+### Core Client
 
-### `getBalance()`
-Returns the current account balance.
+| Method                                   | Description                           |
+| ---------------------------------------- | ------------------------------------- |
+| `initialize()`                           | Authenticates the connection.         |
+| `getBalance()`                           | Returns the current account balance.  |
+| `getTicksHistory(symbol, options)`       | Returns historical ticks.             |
+| `getCandles(symbol, granularity, count)` | Returns historical candles.           |
+| `getProposal(config)`                    | Returns a single price proposal.      |
+| `subscribeTicks(symbol, callback)`       | Subscribes to real-time tick updates. |
+| `buyContract(parameters)`                | Executes a buy operation.             |
+| `sellContract(contractId)`               | Executes a sell operation.            |
+| `disconnect()`                           | Terminates the WebSocket connection.  |
 
-### `getTicksHistory(symbol, options)`
-Returns historical ticks for a symbol.
+### Indicators (`/indicators`)
 
-### `getCandles(symbol, granularity, count)`
-Returns historical candles for a symbol.
-
-### `getProposal(config)`
-Returns a single price proposal for a contract (non-subscription).
-
-### `subscribeTicks(symbol, callback)`
-Subscribes to real-time tick updates for a symbol.
-
-### `buyContract(parameters)`
-Executes a buy operation.
-
-### `sellContract(contractId)`
-Executes a sell operation.
-
-### `getAccountStatus()`
-Returns the status of the authorized account.
-
-### `disconnect()`
-Terminates the WebSocket connection and clears intervals.
+- **BollingerBands**: `(data, period?, stdDev?)`
+- **MACD**: `(data, fast?, slow?, signal?)`
+- **SMA/EMA**: `(data, period)`
+- **StdDev**: `(data, period)`
