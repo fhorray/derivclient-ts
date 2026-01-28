@@ -64,6 +64,63 @@ const { upper, middle, lower } = BollingerBands(prices, 20, 2);
 const { macd, signal, histogram } = MACD(prices, 12, 26, 9);
 ```
 
+### Accumulators
+
+Accumulators allow you to profit as long as the market stays within a range.
+
+```typescript
+// 1. Get a proposal for Accumulator
+const proposal = await deriv.getProposal({
+  symbol: 'R_100',
+  contract_type: 'ACCU',
+  amount: 10,
+  basis: 'stake',
+  growth_rate: 0.03, // 3%
+});
+
+const proposalId = proposal.proposal.id;
+console.log('Current spot:', proposal.proposal.spot);
+
+// 2. Buy the contract
+const buy = await deriv.buyContract({
+  buy: proposalId,
+  price: 10,
+});
+
+const contractId = buy.buy.contract_id;
+
+// 3. Track the contract (ticks_stayed_in)
+await deriv.subscribeOpenContract(contractId, (poc) => {
+  console.log(`Ticks Stayed In: ${poc.tick_count}`);
+  console.log(`Current Profit: ${poc.profit}`);
+
+  if (poc.is_sold) {
+    // 4. Identify the result
+    if (poc.status === 'won') {
+      console.log(`🏆 Win! Profit: ${poc.profit}`);
+    } else if (poc.status === 'lost') {
+      console.log(`❌ Loss. Amount: ${poc.profit}`);
+    }
+    console.log('Contract ended');
+  }
+});
+```
+
+### Identifying Results (Win/Loss)
+
+When a contract is completed (`is_sold`), you can use the following fields:
+
+- **`status`**: `'won'` or `'lost'`.
+- **`profit`**: The final profit or loss amount.
+- **`exit_tick`**: The price where the contract ended.
+
+```typescript
+if (poc.is_sold) {
+  const isWin = poc.status === 'won';
+  const finalProfit = poc.profit;
+}
+```
+
 ## API Reference
 
 ### Core Client
