@@ -86,3 +86,20 @@ const { macd, signal, histogram } = MACD(prices, 12, 26, 9);
 - **MACD**: `(data, fast?, slow?, signal?)`
 - **SMA/EMA**: `(data, period)`
 - **StdDev**: `(data, period)`
+
+## Troubleshooting
+
+### "Cannot find module" or Type Declaration errors
+
+If you encounter errors like `Cannot find module 'derivclient-ts/indicators'`, ensure that your `tsconfig.json` has the following settings:
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "Bundler", // or "NodeNext" / "Node16"
+    "module": "ESNext" // or "NodeNext"
+  }
+}
+```
+
+Modern TypeScript requires `moduleResolution` set to `Bundler`, `Node16`, or `NodeNext` to properly support the `exports` field in `package.json`.
