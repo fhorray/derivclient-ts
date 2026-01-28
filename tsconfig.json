@@ -16,6 +16,8 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.ts",
+    "src/verify-indicators.ts"
   ]
 }
